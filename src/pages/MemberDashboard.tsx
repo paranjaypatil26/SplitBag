@@ -64,7 +64,7 @@ interface AddItemFormProps {
   allItems: ItemSubmission[];
 }
 
-const AddItemForm: React.FC<AddItemFormProps> = ({ onClose, onSubmit, allItems }) => {
+const AddItemForm: React.FC<AddItemFormProps> = ({ onClose, onSubmit }) => {
   const [link, setLink]       = useState('');
   const [name, setName]       = useState('');
   const [price, setPrice]     = useState('');

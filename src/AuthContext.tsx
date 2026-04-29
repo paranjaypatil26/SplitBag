@@ -14,6 +14,7 @@ interface AuthContextType {
   signup: (phone: string, password: string, displayName: string) => Promise<{ error: string | null }>;
   login: (phone: string, password: string) => Promise<{ error: string | null }>;
   logout: () => void;
+  setDisplayName: (name: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

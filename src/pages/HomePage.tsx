@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Zap, ChevronRight, Users, Package, CheckCircle, Star, Clock, Pencil, X, LogOut } from 'lucide-react';
+import { Zap, ChevronRight, Users, Package, CheckCircle, Star, Clock, X, LogOut } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { DEMO_ROOM, DEMO_ITEMS, DEMO_PAYMENTS } from '../utils';
 

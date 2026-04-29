@@ -32,7 +32,7 @@ interface AddItemFormProps {
   allItems: ItemSubmission[];
 }
 
-const AddItemForm: React.FC<AddItemFormProps> = ({ onClose, onSubmit, allItems }) => {
+const AddItemForm: React.FC<AddItemFormProps> = ({ onClose, onSubmit }) => {
   const [link, setLink]         = React.useState('');
   const [name, setName]         = React.useState('');
   const [price, setPrice]       = React.useState('');
@@ -262,12 +262,14 @@ export const CaptainDashboard: React.FC = () => {
     if (status === 'dissolved') navigate('/');
   };
 
+  /*
   const toggleItemStatus = async (item: ItemSubmission) => {
     const next: ItemStatus =
       item.status === 'pending' ? 'added' :
       item.status === 'added'   ? 'oos'   : 'pending';
     await supabase.from('items').update({ status: next }).eq('id', item.id);
   };
+  */
 
   const copyCode = () => {
     if (!roomCode) return;
