@@ -283,7 +283,7 @@ export const CaptainDashboard: React.FC = () => {
     if (!roomCode) return;
     const url = `${window.location.origin}/join`;
     if (navigator.share) {
-      navigator.share({ title: 'Join my DropRun!', text: `Room code: ${roomCode}`, url });
+      navigator.share({ title: 'Join my Split Bag!', text: `Room code: ${roomCode}`, url });
     } else {
       navigator.clipboard.writeText(url);
       toast.success('Join link copied!');

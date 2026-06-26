@@ -38,7 +38,7 @@ export function generateUPILink(params: {
   amount: number;
   roomCode: string;
 }): string {
-  const note = encodeURIComponent(`DropRun Room${params.roomCode}`);
+  const note = encodeURIComponent(`Split Bag Room${params.roomCode}`);
   const pn = encodeURIComponent(params.name);
   return `upi://pay?pa=${params.upiId}&pn=${pn}&am=${params.amount.toFixed(2)}&cu=INR&tn=${note}`;
 }

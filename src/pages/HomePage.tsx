@@ -191,7 +191,7 @@ export const HomePage: React.FC = () => {
             <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
               <Zap className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-white text-lg tracking-tight">DropRun</span>
+            <span className="font-bold text-white text-lg tracking-tight">Split Bag</span>
           </div>
           <div className="flex items-center gap-3">
             {user ? (
@@ -308,7 +308,7 @@ export const HomePage: React.FC = () => {
         </main>
 
         <footer className="text-center py-8 text-white/20 text-xs border-t border-white/5">
-          DropRun — Zero-friction order pooling for your building
+          Split Bag — Zero-friction order pooling for your building
         </footer>
       </div>
     </>

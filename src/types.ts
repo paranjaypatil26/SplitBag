@@ -1,5 +1,5 @@
 // ============================================================
-// Shared TypeScript types for DropRun
+// Shared TypeScript types for Split Bag
 // ============================================================
 
 export type RoomStatus = 'open' | 'locked' | 'ordering' | 'delivered' | 'dissolved';
