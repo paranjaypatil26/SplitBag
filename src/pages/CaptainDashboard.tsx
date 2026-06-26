@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft, Users, Package, Lock, ShoppingBag, CheckCircle,
-  Copy, Share2, ExternalLink, X, Check, Plus, Loader2, Trash2, Pencil
+  Copy, Share2, ExternalLink, X, Check, Plus, Loader2, Trash2, Pencil, Zap
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { useAuth } from '../AuthContext';
@@ -13,6 +13,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import { StatusBadge } from '../components/StatusBadge';
 import { SkeletonCard, EmptyState } from '../components/Loading';
 import toast from 'react-hot-toast';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 // ── Save visited room to history ───────────────────────────────
 function saveRoomToHistory(roomCode: string, building: string, platform: string, role: 'captain' | 'member') {
@@ -24,7 +25,7 @@ function saveRoomToHistory(roomCode: string, building: string, platform: string,
   localStorage.setItem(key, JSON.stringify(filtered.slice(0, 10)));
 }
 
-// ── Inline Add-Item Form (reused from MemberDashboard) ──────
+// ── Inline Add-Item Form ───────────────────────────────────────
 
 interface AddItemFormProps {
   onClose: () => void;
@@ -45,44 +46,72 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onClose, onSubmit }) => {
     const p = parseFloat(price);
     const q = parseInt(qty, 10) || 1;
     if (isNaN(p) || p <= 0) { toast.error('Enter a valid price'); return; }
-    // Removed duplicate check to allow combining
+    
     setSaving(true);
     try { await onSubmit({ itemLink: link.trim(), itemName: name.trim(), price: p, quantity: q, subtotal: p * q, oosPreference }); }
     finally { setSaving(false); }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="card w-full max-w-md p-6 space-y-4 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
-        <h2 className="text-white font-bold text-lg">Add My Items</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+      <div className="glass-card w-full max-w-md p-6 space-y-4 relative border border-white/[0.08] shadow-2xl">
+        <button onClick={onClose} className="absolute top-4 right-4 text-brand-muted hover:text-white transition-colors">
+          <X className="w-5 h-5" />
+        </button>
+        <h2 className="text-white font-display font-semibold text-lg flex items-center gap-2">
+          <Zap className="w-4 h-4 text-brand-cyan" /> Add My Items
+        </h2>
         <div className="space-y-3">
-          <input id="cap-item-link" className="input-field" placeholder="Item URL (Blinkit / Zepto / Instamart)" value={link} onChange={e => setLink(e.target.value)} />
-          <input id="cap-item-name" className="input-field" placeholder="Item name" value={name} onChange={e => setName(e.target.value)} />
+          <div className="space-y-1">
+            <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">Item Link</label>
+            <input id="cap-item-link" className="input-field" placeholder="Paste product URL (Blinkit, Zepto, etc.)" value={link} onChange={e => setLink(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">Item Name</label>
+            <input id="cap-item-name" className="input-field" placeholder="e.g. Organic Bananas 1 dozen" value={name} onChange={e => setName(e.target.value)} />
+          </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30">₹</span>
-              <input id="cap-item-price" type="number" className="input-field pl-7" placeholder="Price" value={price} onChange={e => setPrice(e.target.value)} min="0" />
+            <div className="space-y-1">
+              <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">Price</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted/40 font-semibold font-mono">₹</span>
+                <input id="cap-item-price" type="number" className="input-field pl-8 font-mono" placeholder="0" value={price} onChange={e => setPrice(e.target.value)} min="0" />
+              </div>
             </div>
-            <input id="cap-item-qty" type="number" className="input-field" placeholder="Qty" value={qty} onChange={e => setQty(e.target.value)} min="1" />
+            <div className="space-y-1">
+              <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">Qty</label>
+              <input id="cap-item-qty" type="number" className="input-field font-mono text-center" placeholder="1" value={qty} onChange={e => setQty(e.target.value)} min="1" />
+            </div>
           </div>
           {price && qty && (
-            <div className="text-right text-white/60 text-sm">Subtotal: <span className="text-white font-bold">₹{(parseFloat(price||'0') * (parseInt(qty,10)||1)).toFixed(0)}</span></div>
+            <div className="text-right text-brand-muted text-xs font-sans">
+              Subtotal: <span className="text-brand-orange font-bold font-mono">₹{(parseFloat(price || '0') * (parseInt(qty, 10) || 1)).toFixed(0)}</span>
+            </div>
           )}
-          <div>
-            <p className="text-white/50 text-xs mb-2">If out of stock:</p>
+          <div className="space-y-1.5">
+            <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">If out of stock</label>
             <div className="grid grid-cols-2 gap-2">
-              {(['substitute','cancel'] as OOSPreference[]).map(opt => (
-                <button key={opt} onClick={() => setOos(opt)} className={`py-2 rounded-xl border text-sm font-semibold transition-all ${ oosPreference === opt ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'border-white/10 text-white/40 hover:border-white/20' }`}>
-                  {opt === 'substitute' ? '↔ Substitute' : '✕ Cancel'}
+              {(['substitute', 'cancel'] as OOSPreference[]).map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setOos(opt)}
+                  className={`py-2 rounded-xl border text-xs font-semibold transition-all ${
+                    oosPreference === opt
+                      ? 'bg-brand-cyan/15 border-brand-cyan text-white shadow-lg shadow-brand-cyan/10'
+                      : 'border-white/10 text-brand-muted hover:border-white/20 hover:text-white'
+                  }`}
+                >
+                  {opt === 'substitute' ? '↔ Substitute' : '✕ Cancel item'}
                 </button>
               ))}
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          <button onClick={onClose} className="btn-secondary py-2.5">Cancel</button>
-          <button id="cap-submit-item-btn" onClick={handleSubmit} disabled={saving} className="btn-primary flex items-center justify-center gap-2 py-2.5">
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <button onClick={onClose} className="btn-secondary py-3 text-xs" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', boxShadow: 'none' }}>
+            Cancel
+          </button>
+          <button id="cap-submit-item-btn" onClick={handleSubmit} disabled={saving} className="btn-primary flex items-center justify-center gap-2 py-3 text-xs">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add Item'}
           </button>
         </div>
@@ -262,15 +291,6 @@ export const CaptainDashboard: React.FC = () => {
     if (status === 'dissolved') navigate('/');
   };
 
-  /*
-  const toggleItemStatus = async (item: ItemSubmission) => {
-    const next: ItemStatus =
-      item.status === 'pending' ? 'added' :
-      item.status === 'added'   ? 'oos'   : 'pending';
-    await supabase.from('items').update({ status: next }).eq('id', item.id);
-  };
-  */
-
   const copyCode = () => {
     if (!roomCode) return;
     navigator.clipboard.writeText(roomCode);
@@ -290,10 +310,8 @@ export const CaptainDashboard: React.FC = () => {
     }
   };
 
-  // ── render ────────────────────────────────────────────────
-
   if (loading) return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-brand-navy">
       <div className="p-4 border-b border-white/5"><div className="skeleton h-8 w-40 rounded-lg" /></div>
       <div className="p-4 space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
     </div>
@@ -312,52 +330,61 @@ export const CaptainDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-brand-navy relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full filter blur-[120px] pointer-events-none translate-x-1/3 -translate-y-1/3" />
+      
       {/* Nav */}
-      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/5 sticky top-0 bg-gray-950/80 backdrop-blur-xl z-10">
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[0.08] sticky top-0 bg-brand-navy/85 backdrop-blur-xl z-10">
         <div className="flex items-center gap-3">
-          <Link to="/" className="text-white/40 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
+          <Link to="/" className="text-brand-muted hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5">
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-white font-bold">{room.building}</span>
+              <span className="text-white font-display font-semibold text-sm sm:text-base">{room.building}</span>
               <StatusBadge status={room.status} />
             </div>
-            <p className="text-white/40 text-xs">{platformEmoji[room.platform]} {room.platform} · Captain: {room.captainName}</p>
+            <p className="text-brand-muted text-xs font-sans">
+              {platformEmoji[room.platform]} {room.platform} · Captain: {room.captainName}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {isOpen && (
             <CountdownTimer expiryTime={room.expiryTime} />
           )}
+          <ThemeToggle />
         </div>
       </nav>
 
-      <div className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 space-y-5">
+      <div className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 space-y-6 relative z-10">
 
         {/* Room code share card */}
-        <div className="card p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex-1">
-            <p className="text-white/40 text-xs font-medium mb-1">ROOM CODE — Share with your group</p>
+        <div className="card-premium p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-2xl">
+          <div className="space-y-1.5 flex-1 w-full">
+            <p className="text-brand-muted text-[10px] font-bold uppercase tracking-wider">ROOM CODE — Share with your group</p>
             <div className="flex items-center gap-3">
-              <span className="text-4xl font-black text-white tracking-widest font-mono">{room.roomCode}</span>
-              <button id="copy-code-btn" onClick={copyCode} className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-all">
-                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              <span className="text-4xl font-extrabold font-mono tracking-[0.3em] bg-gradient-to-r from-brand-cyan to-brand-orange bg-clip-text text-transparent">
+                {room.roomCode}
+              </span>
+              <button id="copy-code-btn" onClick={copyCode} className="p-2 rounded-xl bg-white/5 border border-white/5 text-brand-muted hover:text-white hover:bg-white/10 hover:border-white/10 transition-all" title="Copy code">
+                {copied ? <Check className="w-4 h-4 text-brand-cyan" /> : <Copy className="w-4 h-4" />}
               </button>
-              <button id="share-btn" onClick={shareRoom} className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-all">
+              <button id="share-btn" onClick={shareRoom} className="p-2 rounded-xl bg-white/5 border border-white/5 text-brand-muted hover:text-white hover:bg-white/10 hover:border-white/10 transition-all" title="Share link">
                 <Share2 className="w-4 h-4" />
               </button>
             </div>
           </div>
-          <div className="flex gap-2">
-            <div className="text-center px-3 py-1.5 rounded-lg bg-white/5 border border-white/8">
-              <div className="text-lg font-black text-white">{room.memberCount}</div>
-              <div className="text-white/40 text-[10px]">Members</div>
+          
+          <div className="flex gap-3 w-full sm:w-auto">
+            <div className="flex-1 sm:flex-none text-center px-4 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] min-w-[80px]">
+              <div className="text-xl font-bold font-mono text-white">{room.memberCount}</div>
+              <div className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider mt-0.5">Members</div>
             </div>
-            <div className="text-center px-3 py-1.5 rounded-lg bg-white/5 border border-white/8">
-              <div className="text-lg font-black text-white">₹{room.totalCartValue}</div>
-              <div className="text-white/40 text-[10px]">Cart</div>
+            <div className="flex-1 sm:flex-none text-center px-4 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] min-w-[90px]">
+              <div className="text-xl font-bold font-mono text-brand-cyan">₹{room.totalCartValue}</div>
+              <div className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider mt-0.5">Cart Total</div>
             </div>
           </div>
         </div>
@@ -365,85 +392,94 @@ export const CaptainDashboard: React.FC = () => {
         {/* Progress bar */}
         <ProgressBar value={room.totalCartValue} threshold={room.threshold} />
 
-        {/* Captain can also add their own items */}
-        {isOpen && (
-          <button
-            id="cap-add-item-btn"
-            onClick={() => setShowForm(true)}
-            className="btn-primary w-full flex items-center justify-center gap-2 py-3.5"
-          >
-            <Plus className="w-4 h-4" /> Add My Own Items
-          </button>
-        )}
-
-        {/* Status controls */}
-        {isCaptain && (
-          <div className="card p-4 space-y-3">
-            <p className="text-white/40 text-xs font-semibold uppercase tracking-wider">Captain Controls</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {room.status === 'open' && (
-                <button id="lock-room-btn" onClick={() => updateStatus('locked')}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 text-sm font-semibold hover:bg-amber-500/30 transition-all">
-                  <Lock className="w-3.5 h-3.5" /> Lock Room
-                </button>
-              )}
-              {room.status === 'locked' && (
-                <button id="ordering-btn" onClick={() => updateStatus('ordering')}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 text-sm font-semibold hover:bg-indigo-500/30 transition-all">
-                  <ShoppingBag className="w-3.5 h-3.5" /> Mark Ordered
-                </button>
-              )}
-              {room.status === 'ordering' && (
-                <button id="delivered-btn" onClick={() => updateStatus('delivered')}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-semibold hover:bg-emerald-500/30 transition-all">
-                  <CheckCircle className="w-3.5 h-3.5" /> Delivered
-                </button>
-              )}
-              {room.status === 'locked' && (
-                <Link id="splits-btn" to={`/splits/${roomCode}`}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-400 text-sm font-semibold hover:bg-purple-500/30 transition-all">
-                  <Users className="w-3.5 h-3.5" /> View Splits
-                </Link>
-              )}
-              {(room.status === 'open' || room.status === 'locked') && (
-                <button
-                  id="dissolve-room-btn"
-                  onClick={() => {
-                    if (confirm('Dissolve this room? This cannot be undone.')) updateStatus('dissolved');
-                  }}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400/70 text-sm font-semibold hover:bg-red-500/20 hover:border-red-500/40 hover:text-red-400 transition-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" /> Dissolve
-                </button>
-              )}
+        {/* Add items & Captain controls panel */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Controls */}
+          {isCaptain && (
+            <div className="card-premium p-5 space-y-3.5 md:col-span-2">
+              <p className="text-brand-muted text-xs font-bold uppercase tracking-wider">Captain Controls</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {room.status === 'open' && (
+                  <button id="lock-room-btn" onClick={() => updateStatus('locked')}
+                    className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-brand-orange/15 border border-brand-orange/30 text-brand-orange text-xs font-semibold hover:bg-brand-orange/25 transition-all">
+                    <Lock className="w-3.5 h-3.5 animate-pulse" /> Lock Room
+                  </button>
+                )}
+                {room.status === 'locked' && (
+                  <button id="ordering-btn" onClick={() => updateStatus('ordering')}
+                    className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-brand-cyan/15 border border-brand-cyan/30 text-brand-cyan text-xs font-semibold hover:bg-brand-cyan/25 transition-all">
+                    <ShoppingBag className="w-3.5 h-3.5" /> Mark Ordered
+                  </button>
+                )}
+                {room.status === 'ordering' && (
+                  <button id="delivered-btn" onClick={() => updateStatus('delivered')}
+                    className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-brand-cyan/20 border border-brand-cyan/40 text-brand-cyan text-xs font-semibold hover:bg-brand-cyan/30 transition-all">
+                    <CheckCircle className="w-3.5 h-3.5" /> Delivered
+                  </button>
+                )}
+                {room.status === 'locked' && (
+                  <Link id="splits-btn" to={`/splits/${roomCode}`}
+                    className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-brand-cyan/15 border border-brand-cyan/30 text-brand-cyan text-xs font-semibold hover:bg-brand-cyan/25 transition-all text-center">
+                    <Users className="w-3.5 h-3.5" /> View Splits
+                  </Link>
+                )}
+                {(room.status === 'open' || room.status === 'locked') && (
+                  <button
+                    id="dissolve-room-btn"
+                    onClick={() => {
+                      if (confirm('Dissolve this room? This cannot be undone.')) updateStatus('dissolved');
+                    }}
+                    className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400/80 text-xs font-semibold hover:bg-red-500/20 hover:border-red-500/40 hover:text-red-400 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Dissolve
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Quick action: Add own items */}
+          {isOpen ? (
+            <button
+              id="cap-add-item-btn"
+              onClick={() => setShowForm(true)}
+              className="btn-primary w-full flex items-center justify-center gap-2 py-4 text-sm font-semibold rounded-2xl md:col-span-1"
+            >
+              <Plus className="w-4 h-4" /> Add My Items
+            </button>
+          ) : (
+            <div className="glass-card p-5 flex items-center justify-center text-center text-brand-muted text-xs font-medium md:col-span-1">
+              Room is closed to new item submissions.
+            </div>
+          )}
+        </div>
 
         {/* Item stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Pending', count: pendingCount, color: 'text-yellow-400' },
-            { label: 'Added',   count: addedCount,   color: 'text-emerald-400' },
-            { label: 'OOS',     count: oosCount,     color: 'text-red-400' },
+            { label: 'Pending', count: pendingCount, color: 'text-brand-orange border-brand-orange/20 bg-brand-orange/5' },
+            { label: 'Added',   count: addedCount,   color: 'text-brand-cyan border-brand-cyan/20 bg-brand-cyan/5' },
+            { label: 'OOS',     count: oosCount,     color: 'text-red-400 border-red-500/20 bg-red-500/5' },
           ].map(s => (
-            <div key={s.label} className="card p-3 text-center">
-              <div className={`text-2xl font-black ${s.color}`}>{s.count}</div>
-              <div className="text-white/40 text-xs">{s.label}</div>
+            <div key={s.label} className={`glass-card p-3 text-center border ${s.color}`}>
+              <div className="text-2xl font-black font-mono">{s.count}</div>
+              <div className="text-white/60 text-[10px] font-semibold uppercase tracking-wider mt-0.5">{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Item feed */}
-        <div className="space-y-3">
-          <h2 className="text-white font-bold flex items-center gap-2">
-            <Package className="w-4 h-4 text-indigo-400" />
+        <div className="space-y-4">
+          <h2 className="text-white font-display font-semibold text-lg flex items-center gap-2">
+            <Package className="w-5 h-5 text-brand-cyan" />
             Items ({groupedItems.length} unique items)
           </h2>
 
-          {groupedItems.length === 0
-            ? <EmptyState icon="📦" title="No items yet" description="Members will submit their items once they join." />
-            : groupedItems.map((group, groupIdx) => {
+          {groupedItems.length === 0 ? (
+            <EmptyState icon="📦" title="No items yet" description="Members will submit their items once they join." />
+          ) : (
+            <div className="space-y-3">
+              {groupedItems.map((group, groupIdx) => {
                 const firstItem = group[0];
                 const totalQty = group.reduce((acc, curr) => acc + curr.quantity, 0);
                 const totalSubtotal = group.reduce((acc, curr) => acc + curr.subtotal, 0);
@@ -465,35 +501,43 @@ export const CaptainDashboard: React.FC = () => {
                 };
 
                 return (
-                  <div key={firstItem.itemLink + groupIdx} className={`card p-4 space-y-2 border transition-all ${
-                    groupStatus === 'added' ? 'border-emerald-500/30 bg-emerald-500/5' :
-                    groupStatus === 'oos'   ? 'border-red-500/30 bg-red-500/5' :
-                    'border-white/8'
-                  }`}>
-                    <div className="flex items-start justify-between gap-2">
+                  <div
+                    key={firstItem.itemLink + groupIdx}
+                    className={`glass-card p-4 space-y-3 border transition-all duration-300
+                      ${groupStatus === 'added' ? 'border-l-[3px] border-l-brand-cyan border-brand-cyan/25 bg-brand-cyan/[0.02]' :
+                        groupStatus === 'oos'   ? 'border-l-[3px] border-l-red-500 border-red-500/25 bg-red-500/[0.02]' :
+                        'border-l-[3px] border-l-brand-orange border-brand-orange/25 bg-brand-orange/[0.02]'
+                      }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                          <span className="text-indigo-300 text-xs font-semibold">
-                            {group.map(i => `${i.memberName} (${i.quantity})`).join(', ')}
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="text-brand-cyan font-sans font-bold text-xs">
+                            {group.map(i => `${i.memberName} (x${i.quantity})`).join(', ')}
                           </span>
-                          {groupStatus === 'added'   && <span className="chip-added">✓ ADDED</span>}
-                          {groupStatus === 'oos'     && <span className="chip-oos">OOS</span>}
-                          {groupStatus === 'pending' && <span className="chip-pending">PENDING</span>}
+                          {groupStatus === 'added'   && <span className="chip-added font-semibold text-[9px]">✓ ADDED</span>}
+                          {groupStatus === 'oos'     && <span className="chip-oos font-semibold text-[9px]">OOS</span>}
+                          {groupStatus === 'pending' && <span className="chip-pending font-semibold text-[9px]">PENDING</span>}
                         </div>
-                        <p className="text-white font-semibold truncate">
-                           {group.length > 1 ? <span className="text-emerald-400 mr-1">[x{totalQty}]</span> : null}{firstItem.itemName}
+                        
+                        <p className="text-white font-display font-semibold text-base truncate">
+                           {group.length > 1 ? <span className="text-brand-cyan mr-1 font-mono">[x{totalQty}]</span> : null}
+                           {firstItem.itemName}
                         </p>
-                        <p className="text-white/50 text-sm">
+                        
+                        <p className="text-brand-muted text-xs font-sans mt-0.5">
                           {group.length === 1 ? `₹${firstItem.price} × ${totalQty} = ` : `Combined total = `} 
-                          <span className="text-white font-medium">₹{totalSubtotal}</span>
-                          <span className={`ml-2 text-xs ${firstItem.oosPreference === 'substitute' ? 'text-amber-400' : 'text-red-400'}`}>
-                            {firstItem.oosPreference === 'substitute' ? '↔ Sub' : '✕ Cancel if OOS'}
+                          <span className="text-brand-orange font-bold font-mono">₹{totalSubtotal}</span>
+                          <span className={`ml-2 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                            firstItem.oosPreference === 'substitute' ? 'text-brand-orange bg-brand-orange/10' : 'text-red-400 bg-red-500/10'
+                          }`}>
+                            {firstItem.oosPreference === 'substitute' ? '↔ Substitute' : '✕ Cancel if OOS'}
                           </span>
                         </p>
                       </div>
 
                       {isCaptain && (
-                        <div className="flex flex-col sm:flex-row gap-1.5 flex-shrink-0">
+                        <div className="flex gap-2 flex-shrink-0">
                           <button
                             onClick={async () => {
                               const newPriceStr = prompt(`Enter correct price for ${firstItem.itemName}:`, String(firstItem.price));
@@ -507,19 +551,20 @@ export const CaptainDashboard: React.FC = () => {
                               }));
                               toast.success('Prices corrected!', { id: loadingId });
                             }}
-                            className={`p-1.5 rounded-lg border transition-all text-xs font-semibold flex items-center justify-center gap-1.5 px-3 bg-white/5 border-white/10 text-white/40 hover:bg-amber-500/20 hover:border-amber-500/30 hover:text-amber-400`}
+                            className="p-2 rounded-xl border border-white/10 text-brand-muted hover:text-brand-orange hover:bg-brand-orange/10 hover:border-brand-orange/30 transition-all text-xs font-semibold flex items-center justify-center gap-1.5 px-3"
                             title="Edit Price if Wrong"
                           >
                             <Pencil className="w-3.5 h-3.5" /> Fix Price
                           </button>
+                          
                           <button
                             onClick={toggleGroupStatus}
-                            className={`p-1.5 rounded-lg border transition-all text-xs font-semibold flex items-center justify-center gap-1.5 px-3 ${
+                            className={`p-2 rounded-xl border transition-all text-xs font-semibold flex items-center justify-center gap-1.5 px-3 ${
                               groupStatus === 'added'
-                                ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'
+                                ? 'bg-brand-cyan/20 border-brand-cyan/30 text-brand-cyan hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'
                                 : groupStatus === 'oos'
-                                ? 'bg-red-500/20 border-red-500/30 text-red-400 hover:bg-white/10 hover:border-white/20 hover:text-white/60'
-                                : 'bg-white/5 border-white/10 text-white/40 hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:text-emerald-400'
+                                ? 'bg-red-500/20 border-red-500/30 text-red-400 hover:bg-white/10 hover:border-white/20 hover:text-brand-muted'
+                                : 'bg-white/5 border-white/10 text-brand-muted hover:bg-brand-cyan/20 hover:border-brand-cyan/30 hover:text-brand-cyan'
                             }`}
                             title={groupStatus === 'pending' ? 'Mark as Added' : groupStatus === 'added' ? 'Mark as OOS' : 'Reset to Pending'}
                           >
@@ -533,26 +578,27 @@ export const CaptainDashboard: React.FC = () => {
                       href={firstItem.itemLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 text-xs group transition-colors"
+                      className="flex items-center gap-1.5 text-brand-cyan hover:text-brand-cyan/80 text-xs group transition-colors pt-1"
                     >
                       <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate group-hover:underline">{firstItem.itemLink}</span>
+                      <span className="truncate group-hover:underline font-mono text-[11px] text-brand-muted/70">{firstItem.itemLink}</span>
                     </a>
                   </div>
                 );
-              })
-          }
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Delivered state */}
+        {/* Delivered state banner */}
         {room.status === 'delivered' && (
-          <div className="card p-6 text-center space-y-3 border-emerald-500/20 bg-emerald-500/5">
+          <div className="glass-card p-6 text-center space-y-4 border-brand-cyan/30 bg-brand-cyan/5 shadow-2xl">
             <div className="text-4xl">🎉</div>
-            <h3 className="text-white font-bold text-lg">Order Delivered!</h3>
-            <p className="text-white/50 text-sm">
+            <h3 className="text-white font-display font-semibold text-lg">Order Delivered!</h3>
+            <p className="text-brand-muted text-sm font-sans">
               Hand off the items and collect payments from members.
             </p>
-            <Link to={`/splits/${roomCode}`} className="btn-primary inline-flex items-center gap-2">
+            <Link to={`/splits/${roomCode}`} className="btn-primary inline-flex items-center gap-2 py-3 text-sm">
               <Users className="w-4 h-4" /> View Payment Splits
             </Link>
           </div>

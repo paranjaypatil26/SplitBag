@@ -1,17 +1,12 @@
 import React from 'react';
-import { Loader2 } from 'lucide-react';
 
 export const LoadingScreen: React.FC<{ text?: string }> = ({ text = 'Loading...' }) => (
-  <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-    <div className="relative">
-      <div className="w-16 h-16 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full bg-indigo-600/20 flex items-center justify-center">
-          <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
-        </div>
-      </div>
+  <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-brand-navy">
+    <div className="relative w-16 h-16">
+      <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#00A8CC] border-b-[#00A8CC] animate-spin" />
+      <div className="absolute inset-2 rounded-full border-4 border-transparent border-l-[#F97316] border-r-[#F97316] animate-spin [animation-direction:reverse] [animation-duration:1s]" />
     </div>
-    <p className="text-white/50 text-sm">{text}</p>
+    <p className="text-brand-muted/70 text-sm font-sans mt-2">{text}</p>
   </div>
 );
 
@@ -39,12 +34,12 @@ interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, action }) => (
   <div className="flex flex-col items-center justify-center py-16 px-8 text-center space-y-4">
-    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 text-3xl">
+    <div className="w-16 h-16 rounded-2xl bg-brand-card border border-white/[0.08] flex items-center justify-center text-brand-cyan text-3xl shadow-lg shadow-black/25">
       {icon}
     </div>
     <div className="space-y-1">
-      <p className="text-white/70 font-semibold">{title}</p>
-      <p className="text-white/40 text-sm max-w-xs">{description}</p>
+      <p className="text-white font-display font-semibold text-lg">{title}</p>
+      <p className="text-brand-muted/70 text-sm max-w-xs font-sans">{description}</p>
     </div>
     {action}
   </div>

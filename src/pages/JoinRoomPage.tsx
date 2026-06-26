@@ -10,6 +10,7 @@ import { useAuth } from '../AuthContext';
 import type { Room } from '../types';
 import type { Platform, RoomStatus } from '../types';
 import { CountdownTimer } from '../components/CountdownTimer';
+import { EmptyState, SkeletonCard } from '../components/Loading';
 import toast from 'react-hot-toast';
 
 // ── DB mapper ─────────────────────────────────────────────────
@@ -54,8 +55,6 @@ async function reverseGeocode(lat: number, lon: number): Promise<string[]> {
 }
 
 // ── Same-building heuristic ───────────────────────────────────
-// Two rooms are "in the same building" if their building strings share
-// at least 2 significant words, or are an exact (case-insensitive) match.
 
 function isSameBuilding(a: string, b: string): boolean {
   const normalize = (s: string) =>
@@ -90,62 +89,62 @@ const RoomCard: React.FC<{
   room: Room;
   onJoin: (room: Room) => void;
   joining: boolean;
-  isOverflowTarget?: boolean;   // badge: "🔀 Accepting overflow"
+  isOverflowTarget?: boolean;
 }> = ({ room, onJoin, joining, isOverflowTarget }) => {
   const thresholdHit = room.totalCartValue >= room.threshold;
   const progressPct  = Math.min(100, (room.totalCartValue / room.threshold) * 100);
 
   return (
     <div
-      className={`card p-4 space-y-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl cursor-pointer group
+      className={`glass-card p-5 space-y-4 hover:-translate-y-0.5 hover:shadow-2xl cursor-pointer transition-all duration-300 group
         ${thresholdHit
-          ? 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-400/50 hover:shadow-emerald-900/30'
+          ? 'border-brand-cyan/40 bg-brand-cyan/5 hover:border-brand-cyan/60'
           : isOverflowTarget
-            ? 'border-indigo-500/40 bg-indigo-500/5 hover:border-indigo-400/60 hover:shadow-indigo-900/30'
-            : 'hover:border-indigo-500/40 hover:shadow-indigo-900/30'
+            ? 'border-brand-orange/40 bg-brand-orange/5 hover:border-brand-orange/60'
+            : 'hover:border-brand-cyan/25'
         }`}
       onClick={() => !joining && onJoin(room)}
     >
       {/* Overflow / threshold badges */}
       {(thresholdHit || isOverflowTarget) && (
-        <div className="flex items-center gap-2 flex-wrap -mb-1">
+        <div className="flex items-center gap-2 flex-wrap">
           {thresholdHit && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+            <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-brand-cyan/15 border border-brand-cyan/30 text-brand-cyan uppercase tracking-wider">
               <CheckCircle2 className="w-3 h-3" /> Threshold reached · Free delivery 🎉
             </span>
           )}
           {isOverflowTarget && !thresholdHit && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 animate-pulse">
-              <ArrowRightLeft className="w-3 h-3" /> Accepting overflow members
+            <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-brand-orange/15 border border-brand-orange/30 text-brand-orange animate-pulse uppercase tracking-wider">
+              <ArrowRightLeft className="w-3 h-3" /> Accepting overflow
             </span>
           )}
         </div>
       )}
 
       {/* Header row */}
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-0.5">
-            <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${PLATFORM_COLOR[room.platform] ?? 'text-white/50 bg-white/5 border-white/10'}`}>
+          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+            <span className={`inline-flex items-center gap-1 text-[10px] font-sans font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${PLATFORM_COLOR[room.platform] ?? 'text-white/50 bg-white/5 border-white/10'}`}>
               {PLATFORM_EMOJI[room.platform]} {room.platform}
             </span>
           </div>
-          <p className="text-white font-bold truncate">{room.building}</p>
-          <p className="text-white/40 text-xs">Captain: {room.captainName}</p>
+          <p className="text-white font-display font-semibold text-base truncate">{room.building}</p>
+          <p className="text-brand-muted text-xs">Captain: {room.captainName}</p>
         </div>
 
-        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
           <CountdownTimer expiryTime={room.expiryTime} />
           <button
             id={`join-room-${room.roomCode}`}
             disabled={joining}
             onClick={e => { e.stopPropagation(); onJoin(room); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold transition-all group-hover:gap-2 disabled:opacity-60
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-white text-xs font-semibold transition-all group-hover:gap-1.5 disabled:opacity-60
               ${thresholdHit
-                ? 'bg-emerald-600 hover:bg-emerald-500'
+                ? 'bg-brand-cyan hover:bg-brand-cyan/90 shadow-[0_4px_12px_rgba(0,168,204,0.25)]'
                 : isOverflowTarget
-                  ? 'bg-indigo-500 hover:bg-indigo-400 ring-1 ring-indigo-400/50'
-                  : 'bg-indigo-600 hover:bg-indigo-500'
+                  ? 'bg-brand-orange hover:bg-brand-orange/90 shadow-[0_4px_12px_rgba(249,115,22,0.25)]'
+                  : 'bg-brand-cyan hover:bg-brand-cyan/90 shadow-[0_4px_12px_rgba(0,168,204,0.25)]'
               }`}
           >
             {joining
@@ -157,26 +156,33 @@ const RoomCard: React.FC<{
       </div>
 
       {/* Stats row */}
-      <div className="flex items-center gap-4 text-xs text-white/50">
-        <span className="flex items-center gap-1">
-          <Users className="w-3 h-3" />{room.memberCount} member{room.memberCount !== 1 ? 's' : ''}
+      <div className="flex items-center gap-4 text-xs text-brand-muted">
+        <span className="flex items-center gap-1 font-sans">
+          <Users className="w-3.5 h-3.5 text-brand-cyan/70" />{room.memberCount} member{room.memberCount !== 1 ? 's' : ''}
         </span>
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-1 font-mono">
           ₹{room.totalCartValue} / ₹{room.threshold}
         </span>
-        <span className="font-mono text-white/30">#{room.roomCode}</span>
+        <span className="font-mono text-brand-muted/40 ml-auto">#{room.roomCode}</span>
       </div>
 
       {/* Progress */}
-      <div>
-        <div className="flex justify-between text-[10px] text-white/30 mb-1">
+      <div className="pt-1">
+        <div className="flex justify-between text-[10px] text-brand-muted mb-1.5 font-sans">
           <span>{thresholdHit ? '✓ Free delivery secured' : 'towards free delivery'}</span>
-          <span>{Math.round(progressPct)}%</span>
+          <span className="font-mono">{Math.round(progressPct)}%</span>
         </div>
-        <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+        <div className="progress-bar-container h-2">
           <div
-            className={`h-full rounded-full transition-all ${thresholdHit ? 'bg-emerald-400' : isOverflowTarget ? 'bg-indigo-400' : 'bg-indigo-500'}`}
-            style={{ width: `${progressPct}%` }}
+            className={`progress-bar-fill h-full rounded-full transition-all duration-500`}
+            style={{
+              width: `${progressPct}%`,
+              background: thresholdHit
+                ? 'linear-gradient(90deg, #00A8CC, #10B981)'
+                : isOverflowTarget
+                  ? 'linear-gradient(90deg, #F97316, #DC6010)'
+                  : 'linear-gradient(90deg, #00A8CC, #F97316)'
+            }}
           />
         </div>
       </div>
@@ -203,57 +209,57 @@ const OverflowModal: React.FC<{
   const progressPct = Math.min(100, (best.totalCartValue / best.threshold) * 100);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-      <div className="card w-full max-w-sm p-6 space-y-5 relative animate-[slideUp_0.25s_ease]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+      <div className="card-premium w-full max-w-sm p-6 space-y-5 relative border border-white/[0.08] shadow-2xl">
 
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-brand-muted hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-7 h-7 text-emerald-400" />
+          <div className="w-14 h-14 rounded-2xl bg-brand-orange/10 border border-brand-orange/30 flex items-center justify-center mx-auto">
+            <ArrowRightLeft className="w-7 h-7 text-brand-orange" />
           </div>
-          <h2 className="text-white font-bold text-lg leading-tight">
-            Room <span className="font-mono">#{data.original.roomCode}</span> is full!
+          <h2 className="text-white font-display font-semibold text-lg leading-tight">
+            Room <span className="font-mono text-brand-orange">#{data.original.roomCode}</span> is Full!
           </h2>
-          <p className="text-white/50 text-sm">
+          <p className="text-brand-muted text-sm font-sans">
             This room has already hit its free delivery threshold.
-            Another room in the same building needs members!
+            Help another room in your building reach theirs!
           </p>
         </div>
 
         {/* Alternative room preview */}
-        <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/8 p-4 space-y-3">
+        <div className="rounded-2xl border border-brand-cyan/20 bg-brand-cyan/5 p-4 space-y-4">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 flex items-center gap-1">
-              <ArrowRightLeft className="w-3 h-3" /> Suggested room
+            <span className="text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-brand-cyan/15 border border-brand-cyan/30 text-brand-cyan uppercase tracking-wider flex items-center gap-1 animate-pulse">
+              <ArrowRightLeft className="w-3 h-3" /> Sibling Room
             </span>
             <span className="font-mono font-bold text-white text-sm">#{best.roomCode}</span>
           </div>
 
           <div>
-            <p className="text-white font-semibold text-sm">{best.building}</p>
-            <p className="text-white/40 text-xs">
+            <p className="text-white font-display font-semibold text-sm truncate">{best.building}</p>
+            <p className="text-brand-muted text-xs">
               {PLATFORM_EMOJI[best.platform]} {best.platform} · Captain: {best.captainName}
             </p>
           </div>
 
           <div className="space-y-1">
-            <div className="flex justify-between text-xs text-white/50">
+            <div className="flex justify-between text-xs text-brand-muted font-sans">
               <span>₹{best.totalCartValue} cart · {best.memberCount} members</span>
               {neededForFreeDelivery > 0 && (
-                <span className="text-amber-400 font-medium">₹{neededForFreeDelivery} to free delivery</span>
+                <span className="text-brand-orange font-semibold font-mono">₹{neededForFreeDelivery} to go</span>
               )}
             </div>
-            <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+            <div className="progress-bar-container h-1.5">
               <div
-                className="h-full bg-indigo-400 rounded-full transition-all"
-                style={{ width: `${progressPct}%` }}
+                className="progress-bar-fill h-full rounded-full transition-all duration-500"
+                style={{ width: `${progressPct}%`, background: 'linear-gradient(90deg, #00A8CC, #F97316)' }}
               />
             </div>
           </div>
@@ -265,7 +271,7 @@ const OverflowModal: React.FC<{
           >
             {joining
               ? <Loader2 className="w-4 h-4 animate-spin" />
-              : <><ArrowRightLeft className="w-4 h-4" /> Switch to #{best.roomCode}</>
+              : <><ArrowRightLeft className="w-4 h-4" /> <span>Switch to #{best.roomCode}</span></>
             }
           </button>
         </div>
@@ -274,14 +280,14 @@ const OverflowModal: React.FC<{
         <button
           onClick={onStay}
           disabled={joining}
-          className="w-full text-center text-white/40 hover:text-white/70 text-sm py-2 transition-colors"
+          className="w-full text-center text-brand-muted hover:text-white text-sm py-2 transition-colors font-semibold"
         >
           Stay in #{data.original.roomCode} anyway →
         </button>
 
         {/* Show more alternatives */}
         {data.alternatives.length > 1 && (
-          <p className="text-center text-white/25 text-xs">
+          <p className="text-center text-brand-muted/40 text-[10px]">
             + {data.alternatives.length - 1} more room{data.alternatives.length > 2 ? 's' : ''} available in this building
           </p>
         )}
@@ -414,10 +420,9 @@ export const JoinRoomPage: React.FC = () => {
       r.roomCode !== room.roomCode &&
       r.status === 'open' &&
       r.expiryTime > Date.now() &&
-      r.totalCartValue < r.threshold &&    // hasn't hit threshold yet → needs members
+      r.totalCartValue < r.threshold &&
       isSameBuilding(r.building, room.building)
     ).sort((a, b) =>
-      // prioritise rooms closest to threshold (most progress)
       (b.totalCartValue / b.threshold) - (a.totalCartValue / a.threshold)
     );
   }, [allOpenRooms]);
@@ -478,9 +483,6 @@ export const JoinRoomPage: React.FC = () => {
       roomCode = roomOrCode.roomCode;
     }
 
-    // ── Overflow check ─────────────────────────────────────
-    // If room already hit threshold AND there are sibling rooms that still need
-    // members, intercept and show the overflow modal (unless user forced past it).
     if (!force && roomData.totalCartValue >= roomData.threshold) {
       const alts = findOverflowAlternatives(roomData);
       if (alts.length > 0) {
@@ -526,67 +528,70 @@ export const JoinRoomPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-brand-navy relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-white/5 rounded-full filter blur-[100px] pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+      
       {/* Nav */}
-      <nav className="flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-white/5 sticky top-0 bg-gray-950/80 backdrop-blur-xl z-10">
-        <Link to="/" className="text-white/40 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
+      <nav className="flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-white/[0.08] sticky top-0 bg-brand-navy/85 backdrop-blur-xl z-10">
+        <Link to="/" className="text-brand-muted hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div className="flex items-center gap-2 flex-1">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-white" />
+          <div className="w-7 h-7 rounded-lg bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-brand-cyan" />
           </div>
-          <span className="font-bold text-white">Join a Room</span>
+          <span className="font-display font-semibold text-white">Join a Room</span>
         </div>
         <button
           onClick={detectLocation}
           title="Refresh rooms"
-          className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-all"
+          className="p-1.5 rounded-lg text-brand-muted hover:text-white hover:bg-white/5 transition-all"
         >
           {roomsLoading
-            ? <Loader2 className="w-4 h-4 animate-spin" />
+            ? <Loader2 className="w-4 h-4 animate-spin text-brand-cyan" />
             : <RefreshCw className="w-4 h-4" />}
         </button>
       </nav>
 
-      <div className="flex-1 max-w-lg mx-auto w-full px-4 py-6 space-y-5">
+      <div className="flex-1 max-w-lg mx-auto w-full px-4 py-6 space-y-6 relative z-10">
 
         {/* ── Location header ────────────────────────────────── */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {(locStatus === 'idle' || locStatus === 'detecting') && nearbyRooms.length === 0 && otherRooms.length === 0 && (
               <>
-                <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
-                <span className="text-white/60 text-sm font-medium">Finding open rooms…</span>
+                <Loader2 className="w-4 h-4 text-brand-cyan animate-spin" />
+                <span className="text-brand-muted text-sm font-medium">Finding open rooms…</span>
               </>
             )}
             {locStatus === 'detecting' && (nearbyRooms.length > 0 || otherRooms.length > 0) && (
               <>
-                <Navigation className="w-4 h-4 text-indigo-400 animate-pulse" />
-                <span className="text-white/60 text-sm font-medium">Pinpointing your location…</span>
+                <Navigation className="w-4 h-4 text-brand-cyan animate-pulse" />
+                <span className="text-brand-muted text-sm font-medium">Pinpointing your location…</span>
               </>
             )}
             {locStatus === 'done' && (
               <>
-                <MapPin className="w-4 h-4 text-emerald-400" />
-                <span className="text-white font-semibold text-sm">
+                <MapPin className="w-4 h-4 text-brand-cyan" />
+                <span className="text-white font-display font-semibold text-sm">
                   {locationLabel ? `Near ${locationLabel}` : 'Open rooms'}
                 </span>
               </>
             )}
             {(locStatus === 'denied' || locStatus === 'error') && (
               <>
-                <MapPin className="w-4 h-4 text-white/30" />
-                <span className="text-white/50 text-sm">All open rooms</span>
+                <MapPin className="w-4 h-4 text-brand-muted/40" />
+                <span className="text-brand-muted text-sm font-semibold uppercase tracking-wider">All open rooms</span>
               </>
             )}
           </div>
           {(locStatus === 'denied' || locStatus === 'error') && (
             <button
               onClick={detectLocation}
-              className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1 text-brand-cyan hover:text-brand-cyan/80 text-xs font-semibold transition-colors"
             >
-              <Navigation className="w-3 h-3" /> Enable location
+              <Navigation className="w-3 h-3" /> Enable GPS
             </button>
           )}
         </div>
@@ -594,7 +599,7 @@ export const JoinRoomPage: React.FC = () => {
         {/* ── Nearby rooms ──────────────────────────────────── */}
         {nearbyRooms.length > 0 && (
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-emerald-400/80 uppercase tracking-wider flex items-center gap-1.5">
+            <p className="text-xs font-semibold text-brand-cyan/80 uppercase tracking-wider flex items-center gap-1.5">
               <MapPin className="w-3 h-3" /> Near you
             </p>
             {nearbyRooms.map(renderRoomCard)}
@@ -605,7 +610,7 @@ export const JoinRoomPage: React.FC = () => {
         {otherRooms.length > 0 && (
           <div className="space-y-3">
             {nearbyRooms.length > 0 && (
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">Other open rooms</p>
+              <p className="text-xs font-semibold text-brand-muted/60 uppercase tracking-wider">Other open rooms</p>
             )}
             {otherRooms.map(renderRoomCard)}
           </div>
@@ -614,51 +619,35 @@ export const JoinRoomPage: React.FC = () => {
         {/* ── Empty state ───────────────────────────────────── */}
         {!roomsLoading && nearbyRooms.length === 0 && otherRooms.length === 0
           && locStatus !== 'detecting' && locStatus !== 'idle' && (
-          <div className="card p-6 text-center space-y-2 border-dashed">
-            <div className="text-3xl">📭</div>
-            <p className="text-white/60 font-medium text-sm">No open rooms right now</p>
-            <p className="text-white/30 text-xs">
-              Ask your Captain for the room code, or create your own run.
-            </p>
-          </div>
+          <EmptyState
+            icon="📭"
+            title="No open rooms right now"
+            description="Ask your Captain for the room code, or create your own run."
+          />
         )}
 
         {/* ── Skeleton ──────────────────────────────────────── */}
         {(roomsLoading || locStatus === 'idle') && nearbyRooms.length === 0 && otherRooms.length === 0 && (
           <div className="space-y-3">
             {[1, 2].map(i => (
-              <div key={i} className="card p-4 space-y-3 animate-pulse">
-                <div className="flex justify-between">
-                  <div className="space-y-2 flex-1">
-                    <div className="skeleton h-4 w-24 rounded" />
-                    <div className="skeleton h-5 w-48 rounded" />
-                    <div className="skeleton h-3 w-32 rounded" />
-                  </div>
-                  <div className="skeleton h-8 w-14 rounded-lg" />
-                </div>
-                <div className="skeleton h-1.5 w-full rounded-full" />
-              </div>
+              <SkeletonCard key={i} />
             ))}
           </div>
         )}
 
         {/* ── Divider ───────────────────────────────────────── */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-white/8" />
-          <span className="text-white/25 text-xs font-medium uppercase tracking-wider">or enter code manually</span>
-          <div className="flex-1 h-px bg-white/8" />
-        </div>
+        <div className="lightning-divider" />
 
         {/* ── Manual code entry ─────────────────────────────── */}
-        <div className="card p-5 space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Search className="w-3.5 h-3.5 text-white/40" />
-            <p className="text-white/50 text-xs font-medium">Have a room code from your Captain?</p>
+        <div className="card-premium p-5 space-y-4 shadow-xl">
+          <div className="flex items-center gap-2">
+            <Search className="w-4 h-4 text-brand-cyan/70" />
+            <p className="text-brand-muted text-xs font-semibold uppercase tracking-wider">Enter room code manually</p>
           </div>
           <div className="flex gap-2">
             <input
               id="room-code-input"
-              className="input-field flex-1 text-center text-2xl font-black tracking-[0.35em] uppercase placeholder:text-base placeholder:font-normal placeholder:tracking-normal"
+              className="input-field flex-1 text-center text-2xl font-mono font-bold tracking-[0.35em] uppercase placeholder:text-base placeholder:font-normal placeholder:tracking-normal"
               maxLength={6}
               placeholder="ABC123"
               value={code}
@@ -669,7 +658,7 @@ export const JoinRoomPage: React.FC = () => {
               id="join-room-btn"
               onClick={() => handleJoin(code)}
               disabled={!!joining || code.length < 6}
-              className="btn-primary flex items-center justify-center gap-1.5 px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary flex items-center justify-center gap-1.5 px-5 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {joining === code.toUpperCase()
                 ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -680,9 +669,9 @@ export const JoinRoomPage: React.FC = () => {
         </div>
 
         {/* Tip */}
-        <p className="text-center text-white/25 text-xs flex items-center justify-center gap-1.5">
-          <Clock className="w-3 h-3" />
-          Rooms with sibling rooms auto-suggest overflow redirection
+        <p className="text-center text-brand-muted/40 text-[10px] flex items-center justify-center gap-1.5 font-sans">
+          <Clock className="w-3.5 h-3.5" />
+          Rooms in the same building support smart overflow redirect
         </p>
       </div>
 

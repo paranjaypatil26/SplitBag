@@ -42,31 +42,31 @@ export const UPIModal: React.FC<UPIModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="card w-full max-w-sm p-6 space-y-5 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+      <div className="glass-card w-full max-w-sm p-6 space-y-5 relative border border-white/[0.08] shadow-2xl">
+        <button onClick={onClose} className="absolute top-4 right-4 text-brand-muted hover:text-white transition-colors">
           <X className="w-5 h-5" />
         </button>
 
         <div className="text-center space-y-1">
-          <h2 className="text-white font-bold text-lg">Pay {captainName}</h2>
-          <p className="text-white/40 text-sm">via UPI</p>
+          <h2 className="text-white font-display font-semibold text-lg">Pay {captainName}</h2>
+          <p className="text-brand-muted text-xs font-sans">via UPI</p>
         </div>
 
         <div className="flex justify-center">
-          <div className="bg-white p-3 rounded-xl">
+          <div className="bg-white p-3.5 rounded-2xl shadow-xl shadow-black/30 border border-white/[0.05]">
             <QRCodeCanvas value={upiLink} size={180} />
           </div>
         </div>
 
-        <div className="text-center space-y-0.5">
-          <div className="text-3xl font-black text-white">₹{amount}</div>
-          <div className="text-white/40 text-sm font-mono">{captainUPI}</div>
+        <div className="text-center space-y-1">
+          <div className="text-3xl font-extrabold font-mono text-brand-orange">₹{amount}</div>
+          <div className="text-brand-muted text-xs font-mono">{captainUPI}</div>
         </div>
 
         <a
           href={upiLink}
-          className="btn-primary flex items-center justify-center gap-2 w-full py-3"
+          className="btn-primary flex items-center justify-center gap-2 w-full py-3.5 text-sm font-semibold rounded-xl"
         >
           Open UPI App
         </a>
@@ -75,13 +75,13 @@ export const UPIModal: React.FC<UPIModalProps> = ({
           id="mark-paid-btn"
           onClick={handleMarkPaid}
           disabled={marking}
-          className="btn-secondary w-full flex items-center justify-center gap-2 py-3"
+          className="btn-secondary w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold rounded-xl"
         >
           {marking ? <Loader2 className="w-4 h-4 animate-spin" /> : '✓ Mark as Paid'}
         </button>
 
-        <p className="text-center text-white/30 text-xs">
-          Scan the QR or tap "Open UPI App", then mark as paid once done
+        <p className="text-center text-brand-muted/60 text-[11px] font-sans leading-relaxed">
+          Scan the QR or tap "Open UPI App", then mark as paid once done.
         </p>
       </div>
     </div>

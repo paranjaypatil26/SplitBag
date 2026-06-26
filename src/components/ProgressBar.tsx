@@ -22,12 +22,12 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ value, threshold, anim
 
   return (
     <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span className="text-white/60">Cart Value</span>
-        <span className={reached ? 'text-emerald-400 font-bold' : 'text-white/80'}>
+      <div className="flex justify-between text-sm font-sans">
+        <span className="text-brand-muted font-medium">Cart Value</span>
+        <span className={reached ? 'text-brand-cyan font-bold font-mono' : 'text-white/80 font-mono'}>
           ₹{value.toFixed(0)}{' '}
-          <span className="text-white/40">/ ₹{threshold}</span>
-          {reached && <span className="ml-1 text-emerald-400">✓ Free delivery!</span>}
+          <span className="text-brand-muted/50 font-normal">/ ₹{threshold}</span>
+          {reached && <span className="ml-1 text-brand-cyan font-sans font-semibold"> (Free delivery secured! 🎉)</span>}
         </span>
       </div>
       <div className="progress-bar-container" ref={barRef}>

@@ -9,6 +9,7 @@ import { UPIModal } from '../components/UPIModal';
 import { SkeletonCard } from '../components/Loading';
 import toast from 'react-hot-toast';
 import { calcMemberDeliveryShare } from '../utils';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 // ── DB mappers ────────────────────────────────────────────────
 
@@ -127,16 +128,14 @@ export const PaymentSplitsPage: React.FC = () => {
     toast.success(`${mp.memberName} marked as ${newStatus}`);
   };
 
-  // ── render ────────────────────────────────────────────────
-
   if (loading) return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-brand-navy">
       <div className="p-4 border-b border-white/5"><div className="skeleton h-8 w-40 rounded-lg" /></div>
       <div className="p-6 space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
     </div>
   );
 
-  if (!room) return <p className="text-white text-center p-10">Room not found</p>;
+  if (!room) return <p className="text-white text-center p-10 font-sans">Room not found</p>;
 
   const splits = computeSplits();
   const allPaid = splits.length > 0 && splits.every(s => s.paymentStatus === 'paid');
@@ -146,145 +145,178 @@ export const PaymentSplitsPage: React.FC = () => {
   const freeDelivery   = room.totalCartValue >= room.threshold;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <nav className="flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-white/5 sticky top-0 bg-gray-950/80 backdrop-blur-xl z-10">
-        <Link to={isCaptain ? `/captain/${roomCode}` : `/member/${roomCode}`}
-          className="text-white/40 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
-          <ArrowLeft className="w-4 h-4" />
-        </Link>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-            <Users className="w-3.5 h-3.5 text-white" />
+    <div className="min-h-screen flex flex-col bg-brand-navy relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-white/5 rounded-full filter blur-[100px] pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+      
+      {/* Nav */}
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[0.08] sticky top-0 bg-brand-navy/85 backdrop-blur-xl z-10">
+        <div className="flex items-center gap-3">
+          <Link to={isCaptain ? `/captain/${roomCode}` : `/member/${roomCode}`}
+            className="text-brand-muted hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5">
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center">
+              <Users className="w-3.5 h-3.5 text-brand-cyan" />
+            </div>
+            <span className="font-display font-semibold text-white text-sm sm:text-base">Payment Splits</span>
           </div>
-          <span className="font-bold text-white">Payment Splits</span>
         </div>
+        <ThemeToggle />
       </nav>
 
-      <div className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 space-y-5">
+      <div className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 space-y-6 relative z-10">
 
         {/* Summary header */}
-        <div className="card p-5 space-y-3">
+        <div className="card-premium p-5 space-y-4 shadow-2xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/40 text-xs">Room</p>
-              <p className="text-white font-black tracking-wider text-xl">{room.roomCode}</p>
+              <p className="text-brand-muted text-[10px] font-bold uppercase tracking-wider">Room Code</p>
+              <p className="text-white font-mono font-bold tracking-widest text-xl">{room.roomCode}</p>
             </div>
             <div className="text-right">
-              <p className="text-white/40 text-xs">Status</p>
-              <p className={`font-bold text-sm ${allPaid ? 'text-emerald-400' : 'text-amber-400'}`}>
+              <p className="text-brand-muted text-[10px] font-bold uppercase tracking-wider">Payment Status</p>
+              <p className={`font-display font-semibold text-sm ${allPaid ? 'text-brand-cyan' : 'text-brand-orange animate-pulse'}`}>
                 {allPaid ? '✓ All Settled' : `${splits.filter(s => s.paymentStatus === 'pending').length} Pending`}
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 pt-1 border-t border-white/8">
+          <div className="grid grid-cols-3 gap-3 pt-3.5 border-t border-white/[0.08]">
             <div className="text-center">
-              <p className="text-white font-black text-xl">₹{room.totalCartValue}</p>
-              <p className="text-white/40 text-xs">Cart Value</p>
+              <p className="text-white font-bold font-mono text-base">₹{room.totalCartValue}</p>
+              <p className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider mt-0.5">Cart Value</p>
             </div>
             <div className="text-center">
-              <p className={`font-black text-xl ${freeDelivery ? 'text-emerald-400' : 'text-white'}`}>
+              <p className={`font-bold text-base ${freeDelivery ? 'text-brand-cyan font-sans' : 'text-white font-mono'}`}>
                 {freeDelivery ? <span>Free 🎉</span> : `₹${room.deliveryFee}`}
               </p>
-              <p className="text-white/40 text-xs">Delivery</p>
+              <p className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider mt-0.5">Delivery</p>
             </div>
             <div className="text-center">
-              <p className="text-white font-black text-xl">
-                ₹{totalCollected}<span className="text-white/30 font-normal text-sm">/{totalOwed}</span>
+              <p className="text-white font-bold font-mono text-base">
+                ₹{totalCollected}<span className="text-brand-muted/40 font-normal text-xs">/{totalOwed}</span>
               </p>
-              <p className="text-white/40 text-xs">Collected</p>
+              <p className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider mt-0.5">Collected</p>
             </div>
           </div>
         </div>
 
         {/* Splits table */}
-        <div className="card overflow-hidden">
-          <div className="grid grid-cols-5 gap-2 px-4 py-3 border-b border-white/8 text-white/40 text-xs font-semibold uppercase tracking-wider">
+        <div className="card-premium overflow-hidden shadow-2xl">
+          <div className="grid grid-cols-5 gap-2 px-4 py-3 border-b border-white/[0.08] text-brand-muted text-[10px] font-bold uppercase tracking-wider bg-white/[0.01]">
             <span className="col-span-2">Member</span>
             <span className="text-right">Items</span>
             <span className="text-right">Amount</span>
             <span className="text-right">Status</span>
           </div>
 
-          {splits.length === 0
-            ? <div className="px-4 py-8 text-center text-white/30 text-sm">No items submitted yet</div>
-            : splits.map(mp => (
-                <div key={mp.memberUid}
-                  className={`grid grid-cols-5 gap-2 px-4 py-3.5 border-b border-white/5 last:border-0 items-center hover:bg-white/3 transition-colors ${mp.memberUid === user?.id ? 'bg-indigo-500/5' : ''}`}>
-                  <div className="col-span-2 flex items-center gap-2.5">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                      mp.paymentStatus === 'paid' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-300'}`}>
+          {splits.length === 0 ? (
+            <div className="px-4 py-10 text-center text-brand-muted text-sm font-sans">No items submitted yet</div>
+          ) : (
+            <div className="divide-y divide-white/[0.05]">
+              {splits.map(mp => (
+                <div
+                  key={mp.memberUid}
+                  className={`grid grid-cols-5 gap-2 px-4 py-4 items-center transition-colors
+                    ${mp.memberUid === user?.id ? 'bg-brand-cyan/[0.03]' : 'hover:bg-white/[0.01]'}`}
+                >
+                  <div className="col-span-2 flex items-center gap-2.5 min-w-0">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
+                      ${mp.paymentStatus === 'paid'
+                        ? 'bg-brand-cyan/20 text-brand-cyan border border-brand-cyan/20'
+                        : 'bg-brand-orange/20 text-brand-orange border border-brand-orange/20'}`}>
                       {mp.memberName.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{mp.memberName}</p>
-                      {mp.memberUid === user?.id && <p className="text-indigo-400 text-xs">You</p>}
+                      <p className="text-white text-sm font-semibold truncate">{mp.memberName}</p>
+                      {mp.memberUid === user?.id && <p className="text-brand-cyan text-[10px] font-semibold uppercase tracking-wider">You</p>}
                     </div>
                   </div>
-                  <div className="text-right text-white/60 text-sm">{mp.itemCount}</div>
+                  
+                  <div className="text-right text-brand-muted text-sm font-mono">{mp.itemCount}</div>
+                  
                   <div className="text-right">
-                    <p className="text-white font-bold text-sm">₹{mp.total}</p>
-                    {!freeDelivery && <p className="text-white/30 text-xs">+₹{mp.deliveryShare} del.</p>}
+                    <p className="text-white font-bold font-mono text-sm">₹{mp.total}</p>
+                    {!freeDelivery && <p className="text-brand-muted/40 text-[10px] font-mono">+₹{mp.deliveryShare} del.</p>}
                   </div>
+                  
                   <div className="flex justify-end">
                     {isCaptain ? (
                       <button
                         onClick={() => togglePayment(mp)}
-                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
-                          mp.paymentStatus === 'paid'
-                            ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
-                            : 'border-white/10 text-white/40 hover:bg-emerald-500/10 hover:border-emerald-500/30 hover:text-emerald-400'
+                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all uppercase tracking-wider
+                          ${mp.paymentStatus === 'paid'
+                            ? 'bg-brand-cyan/10 border-brand-cyan/30 text-brand-cyan hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
+                            : 'border-white/10 text-brand-muted hover:bg-brand-cyan/10 hover:border-brand-cyan/30 hover:text-brand-cyan'
                         }`}
                       >
-                        {mp.paymentStatus === 'paid' ? <><Check className="w-3 h-3" /> PAID</> : 'Mark paid'}
+                        {mp.paymentStatus === 'paid' ? <><Check className="w-3.5 h-3.5" /> PAID</> : 'Mark paid'}
                       </button>
                     ) : mp.memberUid === user?.id ? (
-                      mp.paymentStatus === 'paid'
-                        ? <span className="chip-paid flex items-center gap-1"><Check className="w-3 h-3" /> PAID</span>
-                        : <button id="pay-from-splits-btn" onClick={() => setSelected(mp)}
-                            className="btn-primary text-xs py-1.5 px-3">
-                            Pay ₹{mp.total}
-                          </button>
+                      mp.paymentStatus === 'paid' ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-brand-cyan/15 border border-brand-cyan/30 text-brand-cyan uppercase tracking-wider">
+                          ✓ PAID
+                        </span>
+                      ) : (
+                        <button
+                          id="pay-from-splits-btn"
+                          onClick={() => setSelected(mp)}
+                          className="btn-primary text-xs py-1.5 px-3 rounded-xl"
+                        >
+                          Pay ₹{mp.total}
+                        </button>
+                      )
                     ) : (
-                      <span className={mp.paymentStatus === 'paid' ? 'chip-paid' : 'chip-pending'}>
-                        {mp.paymentStatus === 'paid' ? '✓ PAID' : 'UNPAID'}
+                      <span className={mp.paymentStatus === 'paid' ? 'inline-flex items-center gap-1 text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-brand-cyan/15 border border-brand-cyan/30 text-brand-cyan uppercase tracking-wider' : 'inline-flex items-center gap-1 text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-brand-orange/15 border border-brand-orange/30 text-brand-orange uppercase tracking-wider'}>
+                        {mp.paymentStatus === 'paid' ? '✓ PAID' : 'PENDING'}
                       </span>
                     )}
                   </div>
                 </div>
-              ))
-          }
+              ))}
+            </div>
+          )}
 
           {/* Total row */}
-          <div className="grid grid-cols-5 gap-2 px-4 py-3.5 border-t border-white/10 bg-white/3 items-center">
-            <span className="col-span-2 text-white/60 text-sm font-semibold uppercase tracking-wider">Total</span>
-            <span className="text-right text-white/60 text-sm">{splits.reduce((a,s) => a+s.itemCount, 0)}</span>
-            <span className="text-right text-white font-black">₹{totalOwed}</span>
+          <div className="grid grid-cols-5 gap-2 px-4 py-3.5 border-t border-white/[0.08] bg-white/[0.02] items-center">
+            <span className="col-span-2 text-brand-muted text-xs font-bold uppercase tracking-wider">Total Sum</span>
+            <span className="text-right text-brand-muted text-sm font-mono">{splits.reduce((a, s) => a + s.itemCount, 0)}</span>
+            <span className="text-right text-white font-extrabold font-mono">₹{totalOwed}</span>
             <span className="text-right">
-              {allPaid
-                ? <span className="chip-paid">All ✓</span>
-                : <span className="text-white/40 text-xs">₹{totalCollected} in</span>
-              }
+              {allPaid ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold px-2.5 py-0.5 rounded-full bg-brand-cyan/15 border border-brand-cyan/30 text-brand-cyan uppercase tracking-wider">
+                  ALL ✓
+                </span>
+              ) : (
+                <span className="text-brand-muted text-[10px] font-mono">₹{totalCollected} in</span>
+              )}
             </span>
           </div>
         </div>
 
-        {/* UPI QR for captain */}
+        {/* UPI QR / Link for Captain */}
         {isCaptain && (
-          <div className="card p-4 space-y-2 border border-indigo-500/20 bg-indigo-500/5">
+          <div className="glass-card p-5 space-y-2 border border-brand-cyan/20 bg-brand-cyan/5 shadow-2xl">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-indigo-400" />
-              <p className="text-white font-semibold text-sm">Your UPI: <span className="font-mono text-indigo-300">{room.captainUPI}</span></p>
+              <Zap className="w-4.5 h-4.5 text-brand-cyan" />
+              <p className="text-white font-display font-semibold text-sm">
+                Your UPI ID: <span className="font-mono text-brand-orange font-bold select-all">{room.captainUPI}</span>
+              </p>
             </div>
-            <p className="text-white/40 text-xs">Share this with members so they can pay you directly</p>
+            <p className="text-brand-muted text-xs font-sans">
+              Members will use this address to pay you directly. Once received, mark them as PAID above.
+            </p>
           </div>
         )}
 
+        {/* All Settled celebration */}
         {allPaid && (
-          <div className="card p-6 text-center space-y-2 border border-emerald-500/20 bg-emerald-500/5">
+          <div className="glass-card p-6 text-center space-y-3 border-brand-cyan/20 bg-brand-cyan/5 shadow-2xl">
             <div className="text-4xl">🎉</div>
-            <h3 className="text-white font-bold">All Settled!</h3>
-            <p className="text-white/50 text-sm">Everyone has paid. Great run!</p>
+            <h3 className="text-white font-display font-semibold text-base">All Settled!</h3>
+            <p className="text-brand-muted text-sm font-sans">Everyone has completed their transfers. Great run!</p>
           </div>
         )}
       </div>

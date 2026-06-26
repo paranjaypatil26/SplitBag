@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './AuthContext';
+import { ThemeProvider } from './ThemeContext';
 import { HomePage } from './pages/HomePage';
 import { CreateRoomPage } from './pages/CreateRoomPage';
 import { JoinRoomPage } from './pages/JoinRoomPage';
@@ -14,10 +15,11 @@ import { SignupPage } from './pages/SignupPage';
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/create" element={<CreateRoomPage />} />
@@ -34,25 +36,26 @@ function App() {
         position="top-right"
         toastOptions={{
           duration: 4000,
+          className: 'border-l-4 font-sans text-sm shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
           style: {
-            background: 'rgba(17, 17, 32, 0.95)',
+            background: '#0F2035',
             color: '#fff',
-            border: '1px solid rgba(255,255,255,0.1)',
-            backdropFilter: 'blur(20px)',
             borderRadius: '12px',
-            fontSize: '14px',
-            fontFamily: 'Inter, sans-serif',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            padding: '12px 16px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
           },
           success: {
-            iconTheme: { primary: '#10B981', secondary: '#fff' },
+            style: { borderLeft: '4px solid #00A8CC', background: '#0F2035', color: '#fff' },
+            icon: '⚡',
           },
           error: {
-            iconTheme: { primary: '#EF4444', secondary: '#fff' },
+            style: { borderLeft: '4px solid #EF4444', background: '#0F2035', color: '#fff' },
+            icon: '✕',
           },
         }}
       />
-    </AuthProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

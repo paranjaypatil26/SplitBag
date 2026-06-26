@@ -106,7 +106,6 @@ export const CreateRoomPage: React.FC = () => {
             toast.error('No nearby buildings found. Please type manually.');
           } else {
             setSuggestions(results);
-            // Auto-pick the first suggestion
             setBuilding(results[0]);
             setLocationUsed(true);
             toast.success('Location detected!');
@@ -171,45 +170,48 @@ export const CreateRoomPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-brand-navy relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/5 rounded-full filter blur-[100px] pointer-events-none translate-x-1/2 -translate-y-1/2" />
+      
       {/* Nav */}
-      <nav className="flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-white/5 sticky top-0 bg-gray-950/80 backdrop-blur-xl z-10">
-        <Link to="/" className="text-white/40 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
+      <nav className="flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-white/[0.08] sticky top-0 bg-brand-navy/85 backdrop-blur-xl z-10">
+        <Link to="/" className="text-brand-muted hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-white" />
+          <div className="w-7 h-7 rounded-lg bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-brand-cyan" />
           </div>
-          <span className="font-bold text-white text-sm sm:text-base">Create a Room</span>
+          <span className="font-display font-semibold text-white text-sm sm:text-base">Create a Room</span>
         </div>
       </nav>
 
-      <div className="flex-1 flex items-start justify-center px-4 py-8">
+      <div className="flex-1 flex items-start justify-center px-4 py-8 relative z-10">
         <div className="w-full max-w-md space-y-6">
 
           <div className="text-center space-y-1">
-            <h1 className="text-2xl font-black text-white">Start a Group Run</h1>
-            <p className="text-white/40 text-sm">Share the room code after creating</p>
+            <h1 className="text-2xl font-display font-semibold text-white">Start a Group Run</h1>
+            <p className="text-brand-muted text-sm font-sans">Set your preferences and share the code to pool orders</p>
           </div>
 
-          <div className="card p-6 space-y-5">
+          <div className="card-premium p-6 space-y-5 shadow-2xl">
 
             {/* Building — with location detect */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-white/60 text-sm font-medium">
+              <label className="flex items-center gap-2 text-brand-muted text-xs font-semibold uppercase tracking-wider">
                 <Building2 className="w-3.5 h-3.5" /> Building / Hostel Name
               </label>
 
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   {locationUsed && (
-                    <CheckCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400" />
+                    <CheckCircle2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-cyan" />
                   )}
                   <input
                     id="building-input"
-                    className={`input-field w-full transition-all ${locationUsed ? 'pl-9' : ''}`}
-                    placeholder="e.g. Hostel Block C, Tower 4"
+                    className={`input-field w-full transition-all ${locationUsed ? 'pl-10' : ''}`}
+                    placeholder="e.g. Hostel Block C, Room 302"
                     value={building}
                     onChange={e => { setBuilding(e.target.value); setLocationUsed(false); }}
                   />
@@ -221,13 +223,13 @@ export const CreateRoomPage: React.FC = () => {
                   onClick={handleDetectLocation}
                   disabled={detecting}
                   title="Auto-detect from GPS"
-                  className="flex-shrink-0 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-indigo-500/40 bg-indigo-600/15 text-indigo-300 hover:bg-indigo-600/30 hover:border-indigo-500/70 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-shrink-0 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan hover:bg-brand-cyan/20 hover:border-brand-cyan/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-xs"
                 >
                   {detecting
                     ? <Loader2 className="w-4 h-4 animate-spin" />
                     : <Navigation className="w-4 h-4" />
                   }
-                  <span className="text-xs font-semibold hidden sm:block">
+                  <span className="hidden sm:block">
                     {detecting ? 'Detecting…' : 'Detect'}
                   </span>
                 </button>
@@ -235,9 +237,9 @@ export const CreateRoomPage: React.FC = () => {
 
               {/* Location suggestions dropdown */}
               {suggestions.length > 0 && (
-                <div className="mt-1.5 rounded-xl border border-white/10 bg-gray-900/90 backdrop-blur divide-y divide-white/5 overflow-hidden shadow-xl">
-                  <p className="px-3 py-2 text-[10px] text-white/30 font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                    <MapPin className="w-3 h-3" /> Nearby locations — tap to select
+                <div className="mt-2 rounded-xl border border-white/[0.08] bg-brand-card/95 backdrop-blur-xl divide-y divide-white/5 overflow-hidden shadow-2xl">
+                  <p className="px-3 py-2 text-[10px] text-brand-muted font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white/[0.02]">
+                    <MapPin className="w-3 h-3 text-brand-cyan" /> Nearby locations — tap to select
                   </p>
                   {suggestions.map((s, i) => (
                     <button
@@ -247,27 +249,27 @@ export const CreateRoomPage: React.FC = () => {
                         setLocationUsed(true);
                         setSuggestions([]);
                       }}
-                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors hover:bg-white/5 ${
-                        building === s ? 'text-indigo-300 font-medium' : 'text-white/70'
+                      className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors hover:bg-white/5 ${
+                        building === s ? 'text-brand-cyan font-semibold' : 'text-white/70'
                       }`}
                     >
                       {building === s
-                        ? <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
-                        : <MapPin className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
+                        ? <CheckCircle2 className="w-4 h-4 text-brand-cyan flex-shrink-0" />
+                        : <MapPin className="w-4 h-4 text-white/20 flex-shrink-0" />
                       }
                       {s}
                     </button>
                   ))}
                   <button
                     onClick={() => setSuggestions([])}
-                    className="w-full text-center px-3 py-2 text-xs text-white/30 hover:text-white/50 transition-colors"
+                    className="w-full text-center px-3 py-2 text-xs text-brand-muted hover:text-white transition-colors"
                   >
                     Type manually instead
                   </button>
                 </div>
               )}
 
-              <p className="text-white/25 text-xs flex items-center gap-1">
+              <p className="text-brand-muted/50 text-[10px] flex items-center gap-1">
                 <Navigation className="w-3 h-3" />
                 Tap "Detect" to auto-fill from your GPS location
               </p>
@@ -275,7 +277,7 @@ export const CreateRoomPage: React.FC = () => {
 
             {/* Platform */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-white/60 text-sm font-medium">
+              <label className="flex items-center gap-2 text-brand-muted text-xs font-semibold uppercase tracking-wider">
                 <Zap className="w-3.5 h-3.5" /> Platform
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -284,14 +286,14 @@ export const CreateRoomPage: React.FC = () => {
                     key={p}
                     id={`platform-${p.toLowerCase().replace(/\s+/g, '-')}`}
                     onClick={() => setPlatform(p)}
-                    className={`p-3 rounded-xl border text-center transition-all duration-200 ${
+                    className={`p-3 rounded-xl border text-center transition-all duration-300 ${
                       platform === p
-                        ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-500/10'
-                        : 'border-white/10 text-white/50 hover:border-white/20 hover:text-white/70'
+                        ? 'bg-brand-cyan/15 border-brand-cyan text-white shadow-lg shadow-brand-cyan/10 font-semibold'
+                        : 'border-white/10 text-brand-muted hover:border-white/20 hover:text-white'
                     }`}
                   >
                     <div className="text-2xl mb-1">{PLATFORM_EMOJI[p]}</div>
-                    <div className="text-xs font-semibold">{p}</div>
+                    <div className="text-xs font-sans">{p}</div>
                   </button>
                 ))}
               </div>
@@ -299,7 +301,7 @@ export const CreateRoomPage: React.FC = () => {
 
             {/* Timer */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-white/60 text-sm font-medium">
+              <label className="flex items-center gap-2 text-brand-muted text-xs font-semibold uppercase tracking-wider">
                 <Clock className="w-3.5 h-3.5" /> Collection Window
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -308,13 +310,13 @@ export const CreateRoomPage: React.FC = () => {
                     key={t}
                     id={`timer-${t}`}
                     onClick={() => setTimerMinutes(t)}
-                    className={`py-2.5 rounded-xl border text-sm font-semibold transition-all duration-200 ${
+                    className={`py-2.5 rounded-xl border text-xs font-semibold transition-all duration-300 ${
                       timerMinutes === t
-                        ? 'bg-indigo-600 border-indigo-500 text-white'
-                        : 'border-white/10 text-white/50 hover:border-white/20 hover:text-white/70'
+                        ? 'bg-brand-cyan border-brand-cyan text-white'
+                        : 'border-white/10 text-brand-muted hover:border-white/20 hover:text-white'
                     }`}
                   >
-                    {t} min
+                    {t} mins
                   </button>
                 ))}
               </div>
@@ -322,34 +324,34 @@ export const CreateRoomPage: React.FC = () => {
 
             {/* Threshold */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-white/60 text-sm font-medium">
+              <label className="flex items-center gap-2 text-brand-muted text-xs font-semibold uppercase tracking-wider">
                 <CreditCard className="w-3.5 h-3.5" /> Free Delivery Threshold
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 font-medium">₹</span>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted/40 font-semibold">₹</span>
                 <input
                   id="threshold-input"
                   type="number"
-                  className="input-field pl-7"
+                  className="input-field pl-8 font-mono"
                   value={threshold}
                   onChange={e => setThreshold(Number(e.target.value))}
                   min={0}
                 />
               </div>
-              <p className="text-white/30 text-xs">
+              <p className="text-brand-muted/50 text-[10px]">
                 Orders above this amount get free delivery (otherwise ₹30 split among members)
               </p>
             </div>
 
             {/* UPI ID */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-white/60 text-sm font-medium">
+              <label className="flex items-center gap-2 text-brand-muted text-xs font-semibold uppercase tracking-wider">
                 <CreditCard className="w-3.5 h-3.5" /> Your UPI ID{' '}
-                <span className="text-white/30 text-xs font-normal">(for receiving payments)</span>
+                <span className="text-brand-muted/50 text-[10px] font-normal lowercase">(for receiving payments)</span>
               </label>
               <input
                 id="upi-input"
-                className="input-field"
+                className="input-field font-mono"
                 placeholder="yourname@upi"
                 value={upiId}
                 onChange={e => setUpiId(e.target.value)}
@@ -368,12 +370,12 @@ export const CreateRoomPage: React.FC = () => {
             ) : (
               <>
                 <Zap className="w-4 h-4" />
-                Create Room
+                <span>Create Room</span>
                 <ChevronRight className="w-4 h-4" />
               </>
             )}
           </button>
-          <p className="text-center text-white/30 text-xs">Your group will use the room code to join</p>
+          <p className="text-center text-brand-muted/40 text-[10px]">Your group will use the room code to join</p>
         </div>
       </div>
     </div>

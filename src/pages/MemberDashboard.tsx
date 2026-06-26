@@ -13,6 +13,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { SkeletonCard, EmptyState } from '../components/Loading';
 import { UPIModal } from '../components/UPIModal';
 import toast from 'react-hot-toast';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 // ── Save visited room to history ───────────────────────────────
 function saveRoomToHistory(roomCode: string, building: string, platform: string, role: 'captain' | 'member') {
@@ -80,8 +81,6 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onClose, onSubmit }) => {
     const q = parseInt(qty, 10) || 1;
     if (isNaN(p) || p <= 0) { toast.error('Enter a valid price'); return; }
 
-    // Removed duplicate URL block to allow multiple users to order the same item
-
     setLoading(true);
     try {
       await onSubmit({ itemLink: link.trim(), itemName: name.trim(), price: p, quantity: q, subtotal: p * q, oosPreference });
@@ -91,49 +90,70 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onClose, onSubmit }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="card w-full max-w-md p-6 space-y-4 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+      <div className="glass-card w-full max-w-md p-6 space-y-4 relative border border-white/[0.08] shadow-2xl">
+        <button onClick={onClose} className="absolute top-4 right-4 text-brand-muted hover:text-white transition-colors">
           <X className="w-5 h-5" />
         </button>
-        <h2 className="text-white font-bold text-lg">Add Item</h2>
+        <h2 className="text-white font-display font-semibold text-lg flex items-center gap-2">
+          <Zap className="w-4 h-4 text-brand-cyan" /> Add Item
+        </h2>
 
         <div className="space-y-3">
-          <input id="item-link" className="input-field" placeholder="Item URL (Blinkit / Zepto / Instamart)" value={link} onChange={e => setLink(e.target.value)} />
-          <input id="item-name" className="input-field" placeholder="Item name" value={name} onChange={e => setName(e.target.value)} />
+          <div className="space-y-1">
+            <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">Item Link</label>
+            <input id="item-link" className="input-field" placeholder="Paste product URL (Blinkit, Zepto, etc.)" value={link} onChange={e => setLink(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">Item Name</label>
+            <input id="item-name" className="input-field" placeholder="e.g. Organic Milk 1L" value={name} onChange={e => setName(e.target.value)} />
+          </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30">₹</span>
-              <input id="item-price" type="number" className="input-field pl-7" placeholder="Price" value={price} onChange={e => setPrice(e.target.value)} min="0" />
+            <div className="space-y-1">
+              <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">Price</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted/40 font-semibold font-mono">₹</span>
+                <input id="item-price" type="number" className="input-field pl-8 font-mono" placeholder="0" value={price} onChange={e => setPrice(e.target.value)} min="0" />
+              </div>
             </div>
-            <input id="item-qty" type="number" className="input-field" placeholder="Qty" value={qty} onChange={e => setQty(e.target.value)} min="1" />
+            <div className="space-y-1">
+              <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">Qty</label>
+              <input id="item-qty" type="number" className="input-field font-mono text-center" placeholder="1" value={qty} onChange={e => setQty(e.target.value)} min="1" />
+            </div>
           </div>
 
           {price && qty && (
-            <div className="text-right text-white/60 text-sm">
-              Subtotal: <span className="text-white font-bold">₹{(parseFloat(price || '0') * (parseInt(qty, 10) || 1)).toFixed(0)}</span>
+            <div className="text-right text-brand-muted text-xs font-sans">
+              Subtotal: <span className="text-brand-orange font-bold font-mono">₹{(parseFloat(price || '0') * (parseInt(qty, 10) || 1)).toFixed(0)}</span>
             </div>
           )}
 
-          <div>
-            <p className="text-white/50 text-xs mb-2">If out of stock:</p>
+          <div className="space-y-1.5">
+            <label className="text-brand-muted text-[10px] font-semibold uppercase tracking-wider">If out of stock</label>
             <div className="grid grid-cols-2 gap-2">
               {(['substitute', 'cancel'] as OOSPreference[]).map(opt => (
-                <button key={opt} onClick={() => setOos(opt)}
-                  className={`py-2 rounded-xl border text-sm font-semibold transition-all ${
-                    oosPreference === opt ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'border-white/10 text-white/40 hover:border-white/20'
-                  }`}>
-                  {opt === 'substitute' ? '↔ Substitute' : '✕ Cancel'}
+                <button
+                  key={opt}
+                  onClick={() => setOos(opt)}
+                  className={`py-2 rounded-xl border text-xs font-semibold transition-all ${
+                    oosPreference === opt
+                      ? 'bg-brand-cyan/15 border-brand-cyan text-white shadow-lg shadow-brand-cyan/10'
+                      : 'border-white/10 text-brand-muted hover:border-white/20 hover:text-white'
+                  }`}
+                >
+                  {opt === 'substitute' ? '↔ Substitute' : '✕ Cancel item'}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          <button onClick={onClose} className="btn-secondary py-2.5">Cancel</button>
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <button onClick={onClose} className="btn-secondary py-3 text-xs" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', boxShadow: 'none' }}>
+            Cancel
+          </button>
           <button id="submit-item-btn" onClick={handleSubmit} disabled={loading}
-            className="btn-primary flex items-center justify-center gap-2 py-2.5">
+            className="btn-primary flex items-center justify-center gap-2 py-3 text-xs">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add Item'}
           </button>
         </div>
@@ -295,10 +315,8 @@ export const MemberDashboard: React.FC = () => {
     toast.success('Quantity updated');
   };
 
-  // ── render ────────────────────────────────────────────────
-
   if (loading) return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-brand-navy">
       <div className="p-4 border-b border-white/5"><div className="skeleton h-8 w-40 rounded-lg" /></div>
       <div className="p-4 space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
     </div>
@@ -319,35 +337,43 @@ export const MemberDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-brand-navy relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-white/5 rounded-full filter blur-[100px] pointer-events-none translate-x-1/3 -translate-y-1/3" />
+      
       {/* Nav */}
-      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/5 sticky top-0 bg-gray-950/80 backdrop-blur-xl z-10">
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[0.08] sticky top-0 bg-brand-navy/85 backdrop-blur-xl z-10">
         <div className="flex items-center gap-3">
-          <Link to="/" className="text-white/40 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
+          <Link to="/" className="text-brand-muted hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5">
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-white font-bold">{room.building}</span>
+              <span className="text-white font-display font-semibold text-sm sm:text-base">{room.building}</span>
               <StatusBadge status={room.status} />
             </div>
-            <p className="text-white/40 text-xs">{platformEmoji[room.platform]} {room.platform} · Captain: {room.captainName}</p>
+            <p className="text-brand-muted text-xs font-sans">{platformEmoji[room.platform]} {room.platform} · Captain: {room.captainName}</p>
           </div>
         </div>
-        {isOpen && <CountdownTimer expiryTime={room.expiryTime} />}
+        <div className="flex items-center gap-2">
+          {isOpen && <CountdownTimer expiryTime={room.expiryTime} />}
+          <ThemeToggle />
+        </div>
       </nav>
 
-      <div className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 space-y-5">
+      <div className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 space-y-6 relative z-10">
 
         {/* Room info */}
-        <div className="card p-4 flex items-center justify-between">
-          <div>
-            <p className="text-white/40 text-xs">Room</p>
-            <span className="text-2xl font-black text-white tracking-widest font-mono">{room.roomCode}</span>
+        <div className="card-premium p-5 flex items-center justify-between shadow-2xl">
+          <div className="space-y-1">
+            <p className="text-brand-muted text-[10px] font-bold uppercase tracking-wider">ROOM CODE</p>
+            <span className="text-3xl font-extrabold font-mono tracking-[0.2em] bg-gradient-to-r from-brand-cyan to-brand-orange bg-clip-text text-transparent">
+              {room.roomCode}
+            </span>
           </div>
-          <div className="text-right">
-            <p className="text-white/40 text-xs">Members</p>
-            <p className="text-white font-bold">{room.memberCount}</p>
+          <div className="text-right space-y-0.5">
+            <p className="text-brand-muted text-[10px] font-bold uppercase tracking-wider">Members</p>
+            <p className="text-xl font-bold font-mono text-white">{room.memberCount}</p>
           </div>
         </div>
 
@@ -355,72 +381,89 @@ export const MemberDashboard: React.FC = () => {
         <ProgressBar value={room.totalCartValue} threshold={room.threshold} />
 
         {/* Add item button */}
-        {isOpen && (
+        {isOpen ? (
           <button
             id="add-item-btn"
             onClick={() => setShowForm(true)}
-            className="btn-primary w-full flex items-center justify-center gap-2 py-3.5"
+            className="btn-primary w-full flex items-center justify-center gap-2 py-4 text-sm font-semibold rounded-2xl"
           >
             <Plus className="w-4 h-4" /> Add My Items
           </button>
+        ) : (
+          <div className="glass-card p-4 text-center text-brand-muted text-xs font-medium">
+            Room status: <span className="font-semibold text-white uppercase">{room.status}</span>. submissions are closed.
+          </div>
         )}
 
         {/* My items */}
-        <div className="space-y-3">
-          <h2 className="text-white font-bold flex items-center gap-2">
-            <Package className="w-4 h-4 text-indigo-400" />
+        <div className="space-y-3.5">
+          <h2 className="text-white font-display font-semibold text-base flex items-center gap-2">
+            <Package className="w-4.5 h-4.5 text-brand-cyan" />
             My Items ({myItems.length})
           </h2>
 
-          {myItems.length === 0
-            ? <EmptyState icon={isOpen ? '⏳' : '📦'} title={isOpen ? 'Add your items!' : 'No items added'} description={isOpen ? 'Add your items before the timer runs out.' : 'You did not add any items this run.'} />
-            : myItems.map(item => (
-                <div key={item.id} className={`card p-4 space-y-2 border transition-all ${
-                  item.status === 'added' ? 'border-emerald-500/30 bg-emerald-500/5' :
-                  item.status === 'oos'   ? 'border-red-500/30 bg-red-500/5' : 'border-white/8'
-                }`}>
-                  <div className="flex items-start justify-between gap-2">
+          {myItems.length === 0 ? (
+            <EmptyState
+              icon={isOpen ? '⏳' : '📦'}
+              title={isOpen ? 'Add your items!' : 'No items added'}
+              description={isOpen ? 'Add items before the timer runs out.' : 'You did not add any items this run.'}
+            />
+          ) : (
+            <div className="space-y-3">
+              {myItems.map(item => (
+                <div
+                  key={item.id}
+                  className={`glass-card p-4 space-y-3 border transition-all duration-300
+                    ${item.status === 'added' ? 'border-l-[3px] border-l-brand-cyan border-brand-cyan/25 bg-brand-cyan/[0.02]' :
+                      item.status === 'oos'   ? 'border-l-[3px] border-l-red-500 border-red-500/25 bg-red-500/[0.02]' :
+                      'border-l-[3px] border-l-brand-orange border-brand-orange/25 bg-brand-orange/[0.02]'
+                    }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        {item.status === 'added'   && <span className="chip-added">✓ ADDED</span>}
-                        {item.status === 'oos'     && <span className="chip-oos">OOS</span>}
-                        {item.status === 'pending' && <span className="chip-pending">PENDING</span>}
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        {item.status === 'added'   && <span className="chip-added font-semibold text-[9px]">✓ ADDED</span>}
+                        {item.status === 'oos'     && <span className="chip-oos font-semibold text-[9px]">OOS</span>}
+                        {item.status === 'pending' && <span className="chip-pending font-semibold text-[9px]">PENDING</span>}
                       </div>
-                      <p className="text-white font-semibold truncate">{item.itemName}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      
+                      <p className="text-white font-display font-semibold text-base truncate">{item.itemName}</p>
+                      
+                      <div className="flex items-center gap-2 mt-1">
                         {isOpen && editingItemId === item.id ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-white/40 text-sm">₹{item.price} ×</span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-brand-muted text-xs">₹{item.price} ×</span>
                             <input
                               type="number"
                               min="1"
                               value={editQty}
                               onChange={e => setEditQty(e.target.value)}
-                              className="w-14 bg-white/10 border border-indigo-500/50 rounded-lg px-2 py-0.5 text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              className="w-14 bg-white/10 border border-brand-cyan/50 rounded-xl px-2 py-1 text-white text-xs text-center focus:outline-none focus:ring-2 focus:ring-brand-cyan/30"
                               onKeyDown={e => e.key === 'Enter' && saveEdit(item)}
                               autoFocus
                             />
-                            <button onClick={() => saveEdit(item)} className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors">
+                            <button onClick={() => saveEdit(item)} className="p-1.5 rounded-lg bg-brand-cyan/20 text-brand-cyan hover:bg-brand-cyan/30 transition-colors">
                               <Check className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => setEditingItemId(null)} className="p-1 rounded-lg bg-white/10 text-white/40 hover:bg-white/20 transition-colors">
+                            <button onClick={() => setEditingItemId(null)} className="p-1.5 rounded-lg bg-white/10 text-brand-muted hover:text-white transition-colors">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
-                          <p className="text-white/50 text-sm">
-                            ₹{item.price} × {item.quantity} = <span className="text-white font-medium">₹{item.subtotal}</span>
+                          <p className="text-brand-muted text-xs font-sans">
+                            ₹{item.price} × {item.quantity} = <span className="text-brand-orange font-bold font-mono">₹{item.subtotal}</span>
                           </p>
                         )}
                       </div>
                     </div>
+                    
                     {isOpen && item.status === 'pending' && editingItemId !== item.id && (
-                      <div className="flex gap-1 flex-shrink-0">
+                      <div className="flex gap-1.5 flex-shrink-0">
                         <button
                           id={`edit-qty-${item.id}`}
                           onClick={() => startEdit(item)}
                           title="Edit quantity"
-                          className="p-1.5 rounded-lg border border-white/10 text-white/30 hover:text-indigo-300 hover:border-indigo-500/40 hover:bg-indigo-500/10 transition-all"
+                          className="p-2 rounded-xl border border-white/10 text-brand-muted hover:text-brand-cyan hover:border-brand-cyan/30 hover:bg-brand-cyan/10 transition-all"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
@@ -428,67 +471,86 @@ export const MemberDashboard: React.FC = () => {
                           id={`delete-item-${item.id}`}
                           onClick={() => handleDeleteItem(item)}
                           title="Remove item"
-                          className="p-1.5 rounded-lg border border-white/10 text-white/30 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/10 transition-all"
+                          className="p-2 rounded-xl border border-white/10 text-brand-muted hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 transition-all"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     )}
                   </div>
-                  <a href={item.itemLink} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 text-xs group transition-colors">
+                  
+                  <a
+                    href={item.itemLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-brand-cyan hover:text-brand-cyan/80 text-xs group transition-colors pt-1"
+                  >
                     <ExternalLink className="w-3 h-3" />
-                    <span className="truncate group-hover:underline">{item.itemLink}</span>
+                    <span className="truncate group-hover:underline font-mono text-[11px] text-brand-muted/70">{item.itemLink}</span>
                   </a>
                 </div>
-              ))
-          }
+              ))}
+            </div>
+          )}
         </div>
 
         {/* All items feed */}
         {items.filter(i => i.memberUid !== user?.id).length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-white/60 font-semibold text-sm flex items-center gap-2">
-              <Zap className="w-3.5 h-3.5 text-indigo-400" />
+          <div className="space-y-3.5">
+            <h2 className="text-brand-muted font-display font-semibold text-xs uppercase tracking-wider flex items-center gap-2">
+              <Zap className="w-4 h-4 text-brand-cyan" />
               Other Members' Items
             </h2>
-            {items.filter(i => i.memberUid !== user?.id).map(item => (
-              <div key={item.id} className="card p-3 flex items-center justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <p className="text-white/70 text-sm font-medium truncate">{item.itemName}</p>
-                  <p className="text-white/30 text-xs">{item.memberName} · ₹{item.subtotal}</p>
+            <div className="grid grid-cols-1 gap-2.5">
+              {items.filter(i => i.memberUid !== user?.id).map(item => (
+                <div key={item.id} className={`glass-card p-4 flex items-center justify-between gap-3 border transition-all duration-300
+                  ${item.status === 'added' ? 'border-l-[3px] border-l-brand-cyan border-brand-cyan/25 bg-brand-cyan/[0.02]' :
+                    item.status === 'oos'   ? 'border-l-[3px] border-l-red-500 border-red-500/25 bg-red-500/[0.02]' :
+                    'border-l-[3px] border-l-brand-orange border-brand-orange/25 bg-brand-orange/[0.02]'
+                  }`}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-sans text-sm font-semibold truncate">{item.itemName}</p>
+                    <p className="text-brand-muted text-xs font-sans mt-0.5">{item.memberName} · Qty {item.quantity} · <span className="font-mono font-semibold text-brand-orange">₹{item.subtotal}</span></p>
+                  </div>
+                  {item.status === 'added'   && <span className="chip-added font-semibold text-[9px] px-2 py-0.5">✓ ADDED</span>}
+                  {item.status === 'oos'     && <span className="chip-oos font-semibold text-[9px] px-2 py-0.5">OOS</span>}
+                  {item.status === 'pending' && <span className="chip-pending font-semibold text-[9px] px-2 py-0.5">PENDING</span>}
                 </div>
-                {item.status === 'added'   && <span className="chip-added">✓</span>}
-                {item.status === 'oos'     && <span className="chip-oos">OOS</span>}
-                {item.status === 'pending' && <span className="chip-pending">…</span>}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
         {/* Payment section */}
         {(room.status === 'locked' || room.status === 'ordering' || room.status === 'delivered') && mySubtotal > 0 && (
-          <div className={`card p-5 space-y-4 border ${myPayment === 'paid' ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
+          <div className={`glass-card p-5 space-y-4 border shadow-2xl ${
+            myPayment === 'paid' ? 'border-brand-cyan/20 bg-brand-cyan/5' : 'border-brand-orange/20 bg-brand-orange/5'
+          }`}>
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-bold">Your Total</h3>
-              {myPayment === 'paid'
-                ? <span className="chip-paid">✓ PAID</span>
-                : <span className="chip-pending">UNPAID</span>
-              }
+              <h3 className="text-white font-display font-semibold text-base">Your Bill Details</h3>
+              {myPayment === 'paid' ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold px-2.5 py-0.5 rounded-full bg-brand-cyan/15 border border-brand-cyan/30 text-brand-cyan uppercase tracking-wider">
+                  ✓ PAID
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold px-2.5 py-0.5 rounded-full bg-brand-orange/15 border border-brand-orange/30 text-brand-orange uppercase tracking-wider">
+                  UNPAID
+                </span>
+              )}
             </div>
 
-            <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between text-white/60">
+            <div className="space-y-2 text-sm font-sans divide-y divide-white/5">
+              <div className="flex justify-between text-brand-muted pb-2">
                 <span>Items subtotal</span>
-                <span>₹{mySubtotal}</span>
+                <span className="font-mono text-white">₹{mySubtotal}</span>
               </div>
-              <div className="flex justify-between text-white/60">
+              <div className="flex justify-between text-brand-muted py-2">
                 <span>Delivery share</span>
-                <span>{room.totalCartValue >= room.threshold ? <span className="text-emerald-400">Free 🎉</span> : `₹${deliveryShare}`}</span>
+                <span>{room.totalCartValue >= room.threshold ? <span className="text-brand-cyan font-semibold">Free 🎉</span> : <span className="font-mono text-white">₹{deliveryShare}</span>}</span>
               </div>
-              <div className="flex justify-between text-white font-bold text-base border-t border-white/10 pt-2 mt-2">
-                <span>Total to pay {room.captainName}</span>
-                <span>₹{myTotal}</span>
+              <div className="flex justify-between text-white font-bold text-base pt-2">
+                <span>Total Amount to Pay</span>
+                <span className="font-mono text-brand-orange text-lg">₹{myTotal}</span>
               </div>
             </div>
 
@@ -496,7 +558,7 @@ export const MemberDashboard: React.FC = () => {
               <button
                 id="pay-captain-btn"
                 onClick={() => setShowUPI(true)}
-                className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+                className="btn-primary w-full flex items-center justify-center gap-2 py-3.5 font-semibold text-sm"
               >
                 Pay ₹{myTotal} via UPI
               </button>

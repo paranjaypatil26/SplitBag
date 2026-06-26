@@ -7,6 +7,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          cyan: '#FFFFFF',
+          orange: '#F97316',
+          teal: '#084E59',
+          navy: '#0D6E7E',
+          card: '#063740',
+          muted: '#A1D2DB',
+        },
         indigo: {
           50: '#eef2ff',
           100: '#e0e7ff',
@@ -55,6 +63,8 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Space Grotesk', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
     },
   },
